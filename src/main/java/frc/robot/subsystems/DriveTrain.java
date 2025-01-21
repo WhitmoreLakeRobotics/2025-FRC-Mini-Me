@@ -100,7 +100,7 @@ public class DriveTrain extends SubsystemBase {
    */
   private final boolean visionDriveTest = false;
   /**
-   * PhotonVision class to keep an accurate odometry.
+   * PhotonVision cl`ss to keep an accurate odometry.
    */
   private Vision vision;
 
