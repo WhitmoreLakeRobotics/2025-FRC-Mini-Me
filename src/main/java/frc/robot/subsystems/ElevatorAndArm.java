@@ -111,7 +111,7 @@ public class ElevatorAndArm extends SubsystemBase {
         } else {
             ElevatorCurrentSlot = ELEVATOR_CLOSED_LOOP_SLOT_DOWN;
         }
-        elevatorMotor.getClosedLoopController().setReference(newPos, ControlType.kPosition, ElevatorCurrentSlot);
+        elevatorMotor.getClosedLoopController().setReference(newPos, ControlType.kMAXMotionPositionControl, ElevatorCurrentSlot);
     }
 
     public void setElevatorAndArmPos(ElevAndArmPos tpos) {
@@ -160,20 +160,21 @@ public class ElevatorAndArm extends SubsystemBase {
         SparkMaxConfig config = new SparkMaxConfig();
         config.alternateEncoder.inverted(false);
         config.encoder.positionConversionFactor(1);//(Math.PI * elvator_gearDiameter / elevator_gearRatio);
-        config.softLimit.forwardSoftLimit(65.0);
+        config.softLimit.forwardSoftLimit(601.0);
         config.softLimit.forwardSoftLimitEnabled(true);
         config.softLimit.reverseSoftLimit(-1.0);
         config.softLimit.reverseSoftLimitEnabled(true);
         config.idleMode(IdleMode.kBrake);
         //// Down Velocity Values
-        config.closedLoop.maxMotion.maxAcceleration(10000, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
-        config.closedLoop.maxMotion.maxVelocity(1000, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
-        config.closedLoop.maxMotion.allowedClosedLoopError(100);
+        config.closedLoop.maxMotion.maxAcceleration(1000, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoop.maxMotion.maxVelocity(2500, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoop.maxMotion.allowedClosedLoopError(2, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
         config.closedLoop.pidf(.04, 0.0, 0.0, 0.0, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
 
         //// Up Velocity Values
-        config.closedLoop.maxMotion.maxAcceleration(10000, ELEVATOR_CLOSED_LOOP_SLOT_UP);
-        config.closedLoop.maxMotion.maxVelocity(1000, ELEVATOR_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.maxMotion.maxAcceleration(1000, ELEVATOR_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.maxMotion.maxVelocity(2500, ELEVATOR_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.maxMotion.allowedClosedLoopError(2, ELEVATOR_CLOSED_LOOP_SLOT_UP);
         config.closedLoop.pidf(.04, 0.0, 0.0, 0.0, ELEVATOR_CLOSED_LOOP_SLOT_UP);
 
         config.smartCurrentLimit(50);
@@ -219,12 +220,12 @@ public class ElevatorAndArm extends SubsystemBase {
 
     public enum ElevAndArmPos {
         PICKUP(0,0.0), 
-        SAFETYPOS(1,10.0),
-        LEVEL1(1,20.0), 
-        LEVEL2(2,30.0), 
-        LEVEL3(3,40.0), 
-        LEVEL4(4,50.0), 
-        OUTOFWAY(5,60.0);
+        SAFETYPOS(1,100.0),
+        LEVEL1(1,200.0), 
+        LEVEL2(2,300.0), 
+        LEVEL3(3,400.0), 
+        LEVEL4(4,500.0), 
+        OUTOFWAY(5,600.0);
 
         private final double armPos;
         private final double elevPos;
