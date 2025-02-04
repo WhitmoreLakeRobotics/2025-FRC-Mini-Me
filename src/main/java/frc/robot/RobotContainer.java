@@ -140,6 +140,7 @@ public class RobotContainer {
   }
   public void updateDashboard() {
    SmartDashboard.putNumber("elevatorPos", m_elevatorAndArm.getElevatorCurPos());
+   SmartDashboard.putNumber("elevatorVelocity", m_elevatorAndArm.getElevatorVelocity());
   }
   public static RobotContainer getInstance() {
     return m_robotContainer;

@@ -30,8 +30,8 @@ public class ElevatorAndArm extends SubsystemBase {
     private SparkMax elevatorMotor = new SparkMax(9, MotorType.kBrushless);
   //  private SparkMax armMotor = new SparkMax(10, MotorType.kBrushless);
 
-    private double elevator_gearRatio = 1;//(5 / 1);
-    private double elvator_gearDiameter = 1;//1.685; // 14 tooth
+    private double elevator_gearRatio = (5 / 1);
+    private double elvator_gearDiameter = 1.685; // 14 tooth
     // https://www.andymark.com/products/35-series-symmetrical-hub-sprockets?via=Z2lkOi8vYW5keW1hcmsvV29ya2FyZWE6Ok5hdmlnYXRpb246OlNlYXJjaFJlc3VsdHMvJTdCJTIycSUyMiUzQSUyMjE0K3Rvb3RoK3Nwcm9ja2V0JTIyJTdE&Tooth%20Count=14%20(am-4790)&quantity=1;
     private double elevatorCurPos = 0.0;
     private double elevatorCmdPos = 0.0;
@@ -159,23 +159,26 @@ public class ElevatorAndArm extends SubsystemBase {
     private void configElevatorMotor() {
         SparkMaxConfig config = new SparkMaxConfig();
         config.alternateEncoder.inverted(false);
-        config.encoder.positionConversionFactor(1);//(Math.PI * elvator_gearDiameter / elevator_gearRatio);
+        //config.encoder.positionConversionFactor(Math.PI * elvator_gearDiameter / elevator_gearRatio);
+        config.encoder.positionConversionFactor(1);
         config.softLimit.forwardSoftLimit(601.0);
         config.softLimit.forwardSoftLimitEnabled(true);
         config.softLimit.reverseSoftLimit(-1.0);
         config.softLimit.reverseSoftLimitEnabled(true);
         config.idleMode(IdleMode.kBrake);
+        config.closedLoopRampRate(0.0);
         //// Down Velocity Values
         config.closedLoop.maxMotion.maxAcceleration(1000, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
         config.closedLoop.maxMotion.maxVelocity(2500, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
-        config.closedLoop.maxMotion.allowedClosedLoopError(2, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
-        config.closedLoop.pidf(.04, 0.0, 0.0, 0.0, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoop.maxMotion.allowedClosedLoopError(0.2, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoop.pidf(.10, 0.0000001, 0.000001, 0.0, ELEVATOR_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoopRampRate(0.0);
 
         //// Up Velocity Values
         config.closedLoop.maxMotion.maxAcceleration(1000, ELEVATOR_CLOSED_LOOP_SLOT_UP);
         config.closedLoop.maxMotion.maxVelocity(2500, ELEVATOR_CLOSED_LOOP_SLOT_UP);
-        config.closedLoop.maxMotion.allowedClosedLoopError(2, ELEVATOR_CLOSED_LOOP_SLOT_UP);
-        config.closedLoop.pidf(.04, 0.0, 0.0, 0.0, ELEVATOR_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.maxMotion.allowedClosedLoopError(0.2, ELEVATOR_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.pidf(.10, 0.0000001, 0.000001, 0.0, ELEVATOR_CLOSED_LOOP_SLOT_UP);
 
         config.smartCurrentLimit(50);
         config.smartCurrentLimit(50, 50);
@@ -197,12 +200,14 @@ public class ElevatorAndArm extends SubsystemBase {
         //// Down Velocity Values
         config.closedLoop.maxMotion.maxAcceleration(1, ARM_CLOSED_LOOP_SLOT_DOWN);
         config.closedLoop.maxMotion.maxVelocity(5000, ARM_CLOSED_LOOP_SLOT_DOWN);
-        config.closedLoop.pidf(.004, 0.0, 0.0, 0.5, ARM_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoop.maxMotion.allowedClosedLoopError(0.2, ARM_CLOSED_LOOP_SLOT_DOWN);
+        config.closedLoop.pidf(.004, 0.0, 0.0, 0.0, ARM_CLOSED_LOOP_SLOT_DOWN);
 
         //// Up Velocity Values
         config.closedLoop.maxMotion.maxAcceleration(1, ARM_CLOSED_LOOP_SLOT_UP);
         config.closedLoop.maxMotion.maxVelocity(5000, ARM_CLOSED_LOOP_SLOT_UP);
-        config.closedLoop.pidf(.004, 0.0, 0.0, 0.5, ARM_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.maxMotion.allowedClosedLoopError(0.2, ARM_CLOSED_LOOP_SLOT_UP);
+        config.closedLoop.pidf(.004, 0.0, 0.0, 0.0, ARM_CLOSED_LOOP_SLOT_UP);
 
         config.smartCurrentLimit(50);
         config.smartCurrentLimit(50, 50);
@@ -216,6 +221,9 @@ public class ElevatorAndArm extends SubsystemBase {
 
        // armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+    }
+    public double getElevatorVelocity (){
+        return elevatorMotor.getEncoder().getVelocity();
     }
 
     public enum ElevAndArmPos {
