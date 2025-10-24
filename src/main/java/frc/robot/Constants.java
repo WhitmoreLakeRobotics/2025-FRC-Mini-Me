@@ -57,4 +57,55 @@ public class Constants {
     public static final double TURN_CONSTANT = 6;
   }
 
+  public static final class VisionConstants{
+    public static final  double maximumAmbiguity = 0.25;
+    public static final double debouncetimeMilli = 15;
+
+   /*  public static final class CameraTemplate{
+      public static final String name = "tempalte"; // tempalte?
+      public static  Rotation3d robotToCamTransform = new Rotation3d(0, Units.degreesToRadians(18), 0);
+      public static  Translation3d robotToCamTranslation=new Translation3d(Units.inchesToMeters(-4.628),
+      Units.inchesToMeters(-10.687),
+      Units.inchesToMeters(16.129));
+      public static  Matrix<N3, N1> singleTagStdDevs= VecBuilder.fill(2, 2, 8);
+      public static  Matrix<N3, N1> multiTagStdDevsMatrix= VecBuilder.fill(0.5, 0.5, 1); 
+    }
+
+    public static final class RIGHT_CAM{
+      public static final String name = "right";
+      public static  Rotation3d robotToCamTransform = new Rotation3d(0, 0, Units.degreesToRadians(-45));
+      public static  Translation3d robotToCamTranslation=new Translation3d(Units.inchesToMeters(0),
+      Units.inchesToMeters(0),
+      Units.inchesToMeters(0));
+      public static  Matrix<N3, N1> singleTagStdDevs= VecBuilder.fill(4, 4, 8);
+      public static  Matrix<N3, N1> multiTagStdDevsMatrix= VecBuilder.fill(0.5, 0.5, 1); 
+      public static InterpolatingDoubleTreeMap stdDevsMap = new InterpolatingDoubleTreeMap();
+    }
+  */
+    
+
+    public static final double leftAlignmentX = .2435737274077523; //meters
+    public static final double leftAlignmentY = 0.26;
+    public static final double rightAlignmentX = .2435737274077523;
+    public static final double rightAlignmentY = 0.6354460866293814;
+    public static final double thetaAlignment = -Math.PI/2; //degrees
+    public static double maxAlignmentDistance = 1.5;
+
+    public static final double xTolerance = .05;
+    public static final double yTolerance = .05;
+    public static final double thetaTolerance = .05;
+  }
+
+  public static class SwerveConstants {
+    public static final double kPX = 1.5;
+    public static final double kPY = 1.25;
+    public static final double kPTheta = 0.08;
+    public static final double kXTolerance = 0.00; //Meters
+    public static final double kYTolerance = 0.00; //Meters
+    public static final double kThetaTolerance = 0;
+    public static double kStoredRadius = 3.9527559/2; // to be configured later
+    public static double kDrivebaseRadius = .409;
+  }
+
+
 }
