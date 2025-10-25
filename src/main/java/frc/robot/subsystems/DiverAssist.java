@@ -21,8 +21,11 @@ public class DiverAssist extends SubsystemBase {
     private DAStatus currStatus = DAStatus.INIT;
     private DriveTrain driveTrain;
     private Pose2d robotPose;
+    private DriveState currDriveState = DriveState.STATIONARY;
     //private CoralPhase currCoralPhase;
     //private Coral coral;
+    String currCmdName = "";
+
 
 
     
@@ -148,6 +151,23 @@ public class DiverAssist extends SubsystemBase {
     return result.toArray(new Targets[result.size()]);
 }
 
+    // Retreive the current command of the drivetrain. 
+    private void getDrivetrainStatus() {
+        // Get the current status of the drivetrain.
+        currCmdName = driveTrain.getCurrentCommand().getName();
+           
+            if(driveTrain.getSwerveDrive().getRobotVelocity().vxMetersPerSecond == 0 && 
+                    driveTrain.getSwerveDrive().getRobotVelocity().vyMetersPerSecond == 0){
+                        currDriveState = DriveState.STATIONARY;
+                    } else {
+                        currDriveState = DriveState.MOVING;
+                    }
+                
+        
+
+        
+    }
+
     // SUPPORTING METHODS GO ABOVE THIS LINE
     // ENUMERATIONS GO BELOW THIS LINE 
     public enum DAStatus {
@@ -189,6 +209,16 @@ public class DiverAssist extends SubsystemBase {
         public String getTargetType() {
             return targetType;
         }
+    }
+
+    public enum FullState {
+        STATIONARY,
+        MOVING;
+    }
+
+    public enum DriveState {
+        STATIONARY,
+        MOVING;
     }
     // ENUMERATIONS GO ABOVE THIS LINE
     // REFERENCE METHODS GO BELOW THIS LINE
