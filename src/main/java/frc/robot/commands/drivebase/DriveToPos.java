@@ -1,20 +1,16 @@
 package frc.robot.commands.drivebase;
 
-import javax.swing.RootPaneContainer;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.RobotContainer;
 
 public class DriveToPos extends Command {
     private boolean bDone = false;
-    private double bHeading;
-    private double rHeading;
+    //private double bHeading;
+    //private double rHeading;
     private int latestID;
     private Pose2d newTarget;
     private boolean isLeft = true;
@@ -26,8 +22,6 @@ public class DriveToPos extends Command {
         latestID = targetID;
         addRequirements(RobotContainer.getInstance().m_driveTrain);
 
-        // m_subsystem = subsystem;
-        // addRequirements(m_subsystem);
 
         
 

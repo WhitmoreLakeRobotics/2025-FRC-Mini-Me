@@ -14,6 +14,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.ArrayList; // Ensure this import is complete and used in the code
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 
 public class DiverAssist extends SubsystemBase {
@@ -25,6 +27,7 @@ public class DiverAssist extends SubsystemBase {
     //private CoralPhase currCoralPhase;
     //private Coral coral;
     String currCmdName = "";
+    private FullState currFullState = FullState.UNKOWNSTATE;
 
 
 
@@ -96,7 +99,7 @@ public class DiverAssist extends SubsystemBase {
 
     private void getSubsystemState() {
         robotPose = driveTrain.getPose();
-
+        updateDrivetrainStatus();
         //currCoralPhase = coral.getCoralPhase();
         
     }
@@ -104,6 +107,10 @@ public class DiverAssist extends SubsystemBase {
     private void determineCurrentAction() {
         // Determine what action we need to take based on the current state of the
         // subsystems
+        
+        // Should pass in the current states of all subsystems to determine the full state.
+        // Update search methhod with new subsystems as they are added.
+        currFullState = getCurFullState(new String[] {currDriveState.name()});
 
     }
 
@@ -152,7 +159,7 @@ public class DiverAssist extends SubsystemBase {
 }
 
     // Retreive the current command of the drivetrain. 
-    private void getDrivetrainStatus() {
+    private void updateDrivetrainStatus() {
         // Get the current status of the drivetrain.
         currCmdName = driveTrain.getCurrentCommand().getName();
            
@@ -162,10 +169,17 @@ public class DiverAssist extends SubsystemBase {
                     } else {
                         currDriveState = DriveState.MOVING;
                     }
-                
         
+    }
 
+    
+
+    public FullState getCurFullState(String[] args) {
         
+            CompletableFuture<FullState> fullStateFuture = FullState.getFullRobotStateAsync(currDriveState);
+
+            FullState result = fullStateFuture.join();
+            return result;
     }
 
     // SUPPORTING METHODS GO ABOVE THIS LINE
@@ -212,8 +226,31 @@ public class DiverAssist extends SubsystemBase {
     }
 
     public enum FullState {
-        STATIONARY,
-        MOVING;
+        STATIONARY(DriveState.STATIONARY),
+        MOVING(DriveState.MOVING),
+        UNKOWNSTATE(DriveState.STATIONARY);
+
+        private final DriveState driveTrainState;
+
+        FullState(DriveState driveTrainState) {
+            this.driveTrainState = driveTrainState;
+        }
+
+        public DriveState getDriveState() {
+            return driveTrainState;
+        }
+
+        public static CompletableFuture<FullState> getFullRobotStateAsync(DriveState driveTrainState) {
+            return CompletableFuture.supplyAsync(() -> {
+                for (FullState state : FullState.values()) {
+                    if (state.getDriveState() == driveTrainState) {
+                        return state;
+                    }
+                }
+                return UNKOWNSTATE;
+                
+            });
+        }
     }
 
     public enum DriveState {
