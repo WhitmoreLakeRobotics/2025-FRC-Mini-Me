@@ -7,11 +7,14 @@ import frc.robot.RobotContainer;
 //import frc.utils.CommonLogic;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList; // Ensure this import is complete and used in the code
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -22,17 +25,26 @@ public class DiverAssist extends SubsystemBase {
     // GLOBAL VARIABLES GO BELOW THIS LINE
     private DAStatus currStatus = DAStatus.INIT;
     private DriveTrain driveTrain;
-    private Pose2d robotPose;
+    private Pose2d currRobotPose;  //current robot pose
+    private Pose2d SelectedtargetPose2d;  //selected target pose
+    private Pose2d prevTargetPose2d;   //previous loop's selected target pose
     private DriveState currDriveState = DriveState.STATIONARY;
     //private CoralPhase currCoralPhase;
     //private Coral coral;
     String currCmdName = "";
     private FullState currFullState = FullState.UNKOWNSTATE;
 
+    //enum map to store distances to each target
+    private EnumMap<Targets, Double> distances = new EnumMap<>(Targets.class);
 
+    //pose tolaerance values
+    private static final double positionToleranceMeters = 0.1; // 10 cm tolerance
+    private static final double angleToleranceRadians = Math.toRadians(5); // 5 degrees tolerance
+    private boolean bAtPrevTarget = false;
 
-    
-
+    //tactic variables
+    private TACTIC_APPROACH currentTactic = TACTIC_APPROACH.T1;
+    private ActionStates currentActionState = ActionStates.UNKNOWN;
     
     // GLOBAL VARIABLES GO ABOVE THIS LINE
     // SYSTEM METHODS GO BELOW THIS LINE
@@ -47,6 +59,7 @@ public class DiverAssist extends SubsystemBase {
         switch (currStatus)  {
             case RUNNING:
                 getSubsystemState();
+                housekeepingTasks();
                 break;
             case INIT:
                 getSubsystems();
@@ -98,10 +111,19 @@ public class DiverAssist extends SubsystemBase {
     }
 
     private void getSubsystemState() {
-        robotPose = driveTrain.getPose();
+        
+        currRobotPose = driveTrain.getPose();
         updateDrivetrainStatus();
         //currCoralPhase = coral.getCoralPhase();
         
+    }
+
+    private void housekeepingTasks() {
+        // Any periodic housekeeping tasks can be done here.
+        // update key status based on current location / pose robot
+        prevTargetPose2d = SelectedtargetPose2d;
+        bAtPrevTarget = isPose2dCloseEnough(currRobotPose, prevTargetPose2d);
+
     }
 
     private void determineCurrentAction() {
@@ -116,12 +138,65 @@ public class DiverAssist extends SubsystemBase {
 
     private void determinePossibleTargets(){
         // Determine what targets are closest based on the current state of the
-        // subsystems.
+        // subsystems. Plus other robot state information.
+
+        if (RobotContainer.getInstance().m_sensors.bPickup) {
+            // if bPickup is true, we are picking up
+            Targets[] TargetSets = getTargets("PICKUP");
+        } else {
+            // if bPickup is false, we are deploying
+            Targets[] TargetSets = getTargets("DEPLOY");
+        }
+
+        
+            distances.clear();
+        for (Targets target : Targets.values()) {
+            Pose2d targetPose = target.getTargetPose();
+            distances.put(target, getDistanceToTarget(currRobotPose, targetPose.getTranslation()));
+            // Store or process the distance to the target as needed
+        }
+
 
     }
 
     private void determineBestTarget() {
         // Determine what target is best based on the current state of the subsystems.
+        //also include other robot state information.
+        //also include game tactics  <- need to figure out how to do this. haha
+
+        int numofTargets = distances.size();  // number of targets
+        
+        switch (currentActionState) {
+            case EMPTY:
+                // logic to select best pick up target based on tactic approach
+                break;
+            case PICKINGUP:
+                // logic to select best pick up target based on tactic approach
+                break;
+            case STOWED:
+                // logic to select best deploy target based on tactic approach
+                break;
+            case DEPLOYING:
+                // logic to select best deploy target based on tactic approach
+                break;
+            case CLIMB_PREP:
+
+                break;
+            case CLIMB:
+
+                break;
+            default:
+                break;
+        }
+        //if empty use pick up tactic approach or  if picking up use tactic pick up approach
+
+        //if stowed use deployment tactic approach of if deploying use deployment tactic approach
+
+
+        /* game tatics notes: identify if we are at previous target location,  if we arriaved at pick up point mark pick up complete
+         * then move to deploy point. if we are at deploy point mark deploy complete then move to pick up point.
+         */
+
 
     }
 
@@ -146,6 +221,26 @@ public class DiverAssist extends SubsystemBase {
     // PROCESSING METHODS GO ABOVE THIS LINE
     // SUPPORTING METHODS GO BELOW THIS LINE
 
+    //method for storing tactic approaches
+    private void reviewTacticApproach() {
+        // Review the current tactic approach based on the current state of the
+        // subsystems.
+
+        //current tactic approach logic here
+        //use enum TACTIC_APPROACH store current tactic approach
+
+
+    }
+
+
+
+    public void setTacticApproach(TACTIC_APPROACH tactic) {
+        currentTactic = tactic;
+    }
+
+    public TACTIC_APPROACH getTacticApproach() {
+        return currentTactic;
+    }
     
 
     public Targets[] getTargets(String type) {
@@ -181,6 +276,25 @@ public class DiverAssist extends SubsystemBase {
             FullState result = fullStateFuture.join();
             return result;
     }
+
+
+    //get angle to target in Rotation2d in degrees
+public Rotation2d getAngleToTarget(Pose2d currentPose, Translation2d targetPosition) {
+    Translation2d toTarget = targetPosition.minus(currentPose.getTranslation());
+    return new Rotation2d(Math.atan2(toTarget.getY(), toTarget.getX()));
+}
+
+//get relative angle to target in Rotation2d in degrees
+public Rotation2d getRelativeAngleToTarget(Pose2d currentPose, Translation2d targetPosition) {
+    Rotation2d angleToTarget = getAngleToTarget(currentPose, targetPosition);
+    return angleToTarget.minus(currentPose.getRotation());
+}
+
+
+//get distance to target in meters
+public double getDistanceToTarget(Pose2d currentPose, Translation2d targetPosition) {
+    return currentPose.getTranslation().getDistance(targetPosition);
+}
 
     // SUPPORTING METHODS GO ABOVE THIS LINE
     // ENUMERATIONS GO BELOW THIS LINE 
@@ -225,6 +339,8 @@ public class DiverAssist extends SubsystemBase {
         }
     }
 
+
+    //system State based on drive train and other subsystems
     public enum FullState {
         STATIONARY(DriveState.STATIONARY),
         MOVING(DriveState.MOVING),
@@ -253,12 +369,94 @@ public class DiverAssist extends SubsystemBase {
         }
     }
 
+    //state of DriveTrain subsystem
     public enum DriveState {
         STATIONARY,
         MOVING;
     }
+
+    //Tactic Approaches pickup
+    public enum PICKUP_TACTIC {
+        NEARESTPICKUP,
+        RIGHTPICKUP,
+        LEFTPICKUP;
+        
+    }
+
+    public enum DEPLOY_TACTIC {
+        NEARESTDEPLOY,
+        ID8RIGHTDEPLOY,
+        ID8LEFTDEPLOY;
+    }
+    public enum END_TACTIC {
+        NEARESTCLIMB,
+        LEFTCLIMB,
+        RIGHTCLIMB;
+    }
+
+    public enum TACTIC_APPROACH{
+        T1(PICKUP_TACTIC.NEARESTPICKUP, DEPLOY_TACTIC.NEARESTDEPLOY, END_TACTIC.LEFTCLIMB),
+        T2(PICKUP_TACTIC.NEARESTPICKUP, DEPLOY_TACTIC.ID8RIGHTDEPLOY, END_TACTIC.LEFTCLIMB),
+        T3(PICKUP_TACTIC.RIGHTPICKUP, DEPLOY_TACTIC.ID8LEFTDEPLOY , END_TACTIC.LEFTCLIMB);
+
+        private PICKUP_TACTIC pickTactic;
+        private DEPLOY_TACTIC deployTactic;
+        private END_TACTIC endTactic;
+
+        TACTIC_APPROACH(PICKUP_TACTIC pickup, DEPLOY_TACTIC deploy, END_TACTIC end) {
+            this.pickTactic = pickTactic;
+            this.deployTactic = deployTactic;
+            this.endTactic = endTactic;
+        }
+        public PICKUP_TACTIC getPickTactic() {
+            return pickTactic;
+        }
+        public DEPLOY_TACTIC getDeployTactic() {
+            return deployTactic;
+        }
+        public END_TACTIC getEndTactic() {
+            return endTactic;
+        }   
+    }
+
+    public enum ActionStates {
+        STOWED,
+        PICKINGUP,
+        DEPLOYING,
+        EMPTY,
+        CLIMB_PREP,
+        CLIMB,
+        UNKNOWN;
+    }
+
     // ENUMERATIONS GO ABOVE THIS LINE
     // REFERENCE METHODS GO BELOW THIS LINE
+
+ /**
+     * Checks if two poses are within given tolerances.
+     *
+     * @param currentPose The robot's current pose
+     * @param targetPose The desired target pose
+     * @param positionToleranceMeters Allowed distance tolerance (meters)
+     * @param angleToleranceRadians Allowed angle tolerance (radians)
+     * @return true if within tolerance, false otherwise
+     */
+    public static boolean isPose2dCloseEnough(Pose2d currentPose, Pose2d targetPose ) {
+        // Calculate translation distance
+        double dx = currentPose.getX() - targetPose.getX();
+        double dy = currentPose.getY() - targetPose.getY();
+        double distance = Math.hypot(dx, dy);
+
+        // Calculate angular difference
+        double angleDiff = Math.abs(
+            currentPose.getRotation().minus(targetPose.getRotation()).getRadians()
+        );
+
+        return (distance <= positionToleranceMeters) && (angleDiff <= angleToleranceRadians);
+    }
+
+
+
 
 public static double CapMotorPower(double MotorPower, double negCapValue, double posCapValue) {
     // logic to cap the motor power between a good range
