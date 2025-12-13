@@ -23,10 +23,11 @@ import java.util.function.Predicate;
 
 public class DiverAssist extends SubsystemBase {
     // GLOBAL VARIABLES GO BELOW THIS LINE
-    private DAStatus currStatus = DAStatus.INIT;
+    private DAStatus currDAStatus = DAStatus.INIT;
     private DriveTrain driveTrain;
     private Pose2d currRobotPose;  //current robot pose
     private Pose2d SelectedtargetPose2d;  //selected target pose
+    private Targets CurrSelectedTarget; //selected target enum
     private Pose2d prevTargetPose2d;   //previous loop's selected target pose
     private DriveState currDriveState = DriveState.STATIONARY;
     //private CoralPhase currCoralPhase;
@@ -37,6 +38,8 @@ public class DiverAssist extends SubsystemBase {
     //enum map to store distances to each target
     private EnumMap<Targets, Double> distances = new EnumMap<>(Targets.class);
 
+    private Targets[] TargetSets;
+
     //pose tolaerance values
     private static final double positionToleranceMeters = 0.1; // 10 cm tolerance
     private static final double angleToleranceRadians = Math.toRadians(5); // 5 degrees tolerance
@@ -45,7 +48,12 @@ public class DiverAssist extends SubsystemBase {
     //tactic variables
     private TACTIC_APPROACH currentTactic = TACTIC_APPROACH.T1;
     private ActionStates currentActionState = ActionStates.UNKNOWN;
+
+    private PICKUP_TACTIC pickTactic;
+    private DEPLOY_TACTIC deployTactic;
+    private END_TACTIC endTactic;
     
+
     // GLOBAL VARIABLES GO ABOVE THIS LINE
     // SYSTEM METHODS GO BELOW THIS LINE
     public DiverAssist() {
@@ -56,15 +64,20 @@ public class DiverAssist extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-        switch (currStatus)  {
+        switch (currDAStatus)  {
             case RUNNING:
                 getSubsystemState();
                 housekeepingTasks();
+                determineCurrentAction();
+                determinePossibleTargets();
+                determineBestTarget();
+                setDriveTarget();
                 break;
             case INIT:
                 getSubsystems();
                 getSubsystemState();
-                currStatus = DAStatus.RUNNING;
+                currDAStatus = DAStatus.RUNNING;
+                
                 break;
         
             default:
@@ -123,6 +136,52 @@ public class DiverAssist extends SubsystemBase {
         // update key status based on current location / pose robot
         prevTargetPose2d = SelectedtargetPose2d;
         bAtPrevTarget = isPose2dCloseEnough(currRobotPose, prevTargetPose2d);
+        
+        // need to revise this to which Action state we are in with auto updating statefully
+        switch(currentActionState) {
+            case STOWED:
+            //if current pose is a Deploy target and we have an object
+            if(bAtPrevTarget && CurrSelectedTarget.targetType == "DEPLOY" && DriveState.STATIONARY == currDriveState){
+                if(RobotContainer.getInstance().m_sensors.bPickup){
+                    currentActionState = ActionStates.DEPLOYING;
+                }
+            }
+            
+                break;
+            case PICKINGUP:
+            //if current pose is a Pickup target, and we are at target and we do not have an object
+            if(bAtPrevTarget && CurrSelectedTarget.targetType == "PICKUP" && DriveState.STATIONARY == currDriveState){
+                if(!RobotContainer.getInstance().m_sensors.bPickup){
+                    currentActionState = ActionStates.STOWED;
+
+                    //for demo purposes auto set pickup sensor to true
+                    RobotContainer.getInstance().m_sensors.bPickup = true;
+                }
+            }
+                
+                
+                break;
+                //has object heading to deply
+            case DEPLOYING:
+            //if current pose is a Deploy target, we are at previous target 
+                if(bAtPrevTarget && CurrSelectedTarget.targetType == "DEPLOY" && DriveState.STATIONARY == currDriveState){
+                    currentActionState = ActionStates.EMPTY;
+
+                    //for demo purposes auto set pickup sensor to false
+                    RobotContainer.getInstance().m_sensors.bPickup = false;
+                }
+                break;
+            case EMPTY:
+            //if current pose is a Pickup target and we do not have an object
+                if(bAtPrevTarget && CurrSelectedTarget.targetType == "PICKUP" 
+                    && DriveState.STATIONARY == currDriveState && !RobotContainer.getInstance().m_sensors.bPickup){
+                    currentActionState = ActionStates.PICKINGUP;
+                }
+                break;
+            default:
+                break;
+        }
+        
 
     }
 
@@ -134,22 +193,49 @@ public class DiverAssist extends SubsystemBase {
         // Update search methhod with new subsystems as they are added.
         currFullState = getCurFullState(new String[] {currDriveState.name()});
 
+        //This should be Articulation state check. 
     }
 
     private void determinePossibleTargets(){
         // Determine what targets are closest based on the current state of the
         // subsystems. Plus other robot state information.
 
-        if (RobotContainer.getInstance().m_sensors.bPickup) {
-            // if bPickup is true, we are picking up
-            Targets[] TargetSets = getTargets("PICKUP");
-        } else {
-            // if bPickup is false, we are deploying
-            Targets[] TargetSets = getTargets("DEPLOY");
+        distances.clear();
+        TargetSets = new Targets[0];
+
+        switch (currentActionState) {
+            case EMPTY:
+            TargetSets = getTargets("PICKUP");
+            pickTactic = currentTactic.getPickTactic();
+
+                break;
+            case PICKINGUP:
+            TargetSets = getTargets("PICKUP");  //this may need to be changed to deploy
+            pickTactic = currentTactic.getPickTactic();
+
+                break;
+            case STOWED:
+            TargetSets = getTargets("DEPLOY");
+            deployTactic = currentTactic.getDeployTactic();
+                break;
+            case DEPLOYING:
+            TargetSets = getTargets("DEPLOY");     //this may need to be changed to pickup
+            deployTactic = currentTactic.getDeployTactic();
+                break;
+            case CLIMB_PREP:
+            TargetSets = getTargets("END");
+            endTactic = currentTactic.getEndTactic();
+                break;
+            case CLIMB:
+            TargetSets = getTargets("END");
+            endTactic = currentTactic.getEndTactic();
+
+                break;
+            default:
+                break;
+
         }
 
-        
-            distances.clear();
         for (Targets target : Targets.values()) {
             Pose2d targetPose = target.getTargetPose();
             distances.put(target, getDistanceToTarget(currRobotPose, targetPose.getTranslation()));
@@ -168,30 +254,36 @@ public class DiverAssist extends SubsystemBase {
         
         switch (currentActionState) {
             case EMPTY:
-                // logic to select best pick up target based on tactic approach
+                //based on current pickup tactic
+                //filter distances based on pick tactic
+                determineTargetBasedOnTactic();
+                
                 break;
             case PICKINGUP:
-                // logic to select best pick up target based on tactic approach
+                //get current pickup tactic
+                determineTargetBasedOnTactic();
                 break;
             case STOWED:
-                // logic to select best deploy target based on tactic approach
+                //based on current deploy tactic
+                determineDeployTargetBasedOnTactic();
                 break;
             case DEPLOYING:
-                // logic to select best deploy target based on tactic approach
+                //get current deploy tactic
+                determineDeployTargetBasedOnTactic();
+            
                 break;
             case CLIMB_PREP:
-
+                //based on current climb tactic
+                determineEndTargetBasedOnTactic();
                 break;
             case CLIMB:
+                //get current climb tactic
+                determineEndTargetBasedOnTactic();
 
                 break;
             default:
                 break;
         }
-        //if empty use pick up tactic approach or  if picking up use tactic pick up approach
-
-        //if stowed use deployment tactic approach of if deploying use deployment tactic approach
-
 
         /* game tatics notes: identify if we are at previous target location,  if we arriaved at pick up point mark pick up complete
          * then move to deploy point. if we are at deploy point mark deploy complete then move to pick up point.
@@ -204,11 +296,14 @@ public class DiverAssist extends SubsystemBase {
         // Set the target for the drivebase based on the current state of the
         // subsystems.
 
+        SelectedtargetPose2d = CurrSelectedTarget.getTargetPose();
+
     }
 
     private void determineLikelyActions() {
         // Determine what actions are possible based on the current state of the
         // subsystems.
+        //this needs to be built out similarly to how the drive targets are setup, once we determine Articulation Actions.
 
     }
 
@@ -216,6 +311,9 @@ public class DiverAssist extends SubsystemBase {
         // Execute the action determined by the current state of the subsystems.
         // This may be a simple command or a complex sequence of commands.
         // Need to set articulation and drivebase targets.
+
+        //this should be a drive target and articulation target set.
+
     }
 
     // PROCESSING METHODS GO ABOVE THIS LINE
@@ -241,7 +339,92 @@ public class DiverAssist extends SubsystemBase {
     public TACTIC_APPROACH getTacticApproach() {
         return currentTactic;
     }
-    
+
+    private void determineTargetBasedOnTactic() {
+        // Determine the target based on the current tactic approach.
+
+        switch (pickTactic){
+            case NEARESTPICKUP:
+                //find nearest pickup
+                    CurrSelectedTarget = distances.entrySet().stream()
+                    .filter(entry -> entry.getKey().getTargetType().equals("PICKUP"))
+                    .min((e1, e2) -> Double.compare(e1.getValue(), e2.getValue()))
+                    .map(entry -> Targets.valueOf(currCmdName))
+                    .orElse(null);
+                
+                break;
+            case RIGHTPICKUP:
+                //select right pickup
+                CurrSelectedTarget = Targets.PICKUPRIGHT;
+                
+                break;
+            case LEFTPICKUP:
+                //select left pickup
+                CurrSelectedTarget = Targets.PICKUPLEFT;
+                break;
+
+            default:    
+                break;
+        }        
+
+    }
+
+    private void determineDeployTargetBasedOnTactic() {
+        // Determine the target based on the current tactic approach.
+
+        switch (deployTactic){
+            case NEARESTDEPLOY:
+                //find nearest deploy
+                CurrSelectedTarget = distances.entrySet().stream()
+                    .filter(entry -> entry.getKey().getTargetType().equals("DEPLOY"))
+                    .min((e1, e2) -> Double.compare(e1.getValue(), e2.getValue()))
+                    .map(entry -> Targets.valueOf(currCmdName))
+                    .orElse(null);
+                
+                break;
+            case ID8RIGHTDEPLOY:
+                //select right deploy
+                CurrSelectedTarget = Targets.ID8RIGHT;
+                
+                break;
+            case ID8LEFTDEPLOY:
+                //select left deploy
+                CurrSelectedTarget = Targets.ID8LEFT;
+                
+                break;
+
+            default:    
+                break;
+        }        
+
+    }
+
+    private void determineEndTargetBasedOnTactic() {
+        // Determine the target based on the current tactic approach.
+
+        switch (endTactic){
+            case NEARESTCLIMB:
+                //find nearest climb
+                CurrSelectedTarget = distances.entrySet().stream()
+                    .filter(entry -> entry.getKey().getTargetType().equals("END"))
+                    .min((e1, e2) -> Double.compare(e1.getValue(), e2.getValue()))
+                    .map(entry -> Targets.valueOf(currCmdName))
+                    .orElse(null);
+                
+                break;
+            case LEFTCLIMB:
+                //select left climb
+                CurrSelectedTarget = Targets.CLIMBLEFT;
+                
+                break;
+        
+
+            default:    
+                break;
+        }        
+
+    }
+
 
     public Targets[] getTargets(String type) {
     List<Targets> result = new ArrayList<Targets>();
@@ -390,8 +573,7 @@ public double getDistanceToTarget(Pose2d currentPose, Translation2d targetPositi
     }
     public enum END_TACTIC {
         NEARESTCLIMB,
-        LEFTCLIMB,
-        RIGHTCLIMB;
+        LEFTCLIMB;
     }
 
     public enum TACTIC_APPROACH{
