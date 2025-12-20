@@ -102,7 +102,7 @@ public class DriveTrain extends SubsystemBase {
   /**
    * PhotonVision cl`ss to keep an accurate odometry.
    */
-  private Vision vision;
+  public Vision vision;
 
   /**
   *
