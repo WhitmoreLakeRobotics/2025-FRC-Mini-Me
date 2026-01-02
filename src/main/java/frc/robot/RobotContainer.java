@@ -146,7 +146,11 @@ SmartDashboard.putNumber("Robot X Position", m_driveTrain.getPose().getX());
 SmartDashboard.putNumber("Robot Y Position", m_driveTrain.getPose().getY());
 SmartDashboard.putNumber("Robot Rotation", m_driveTrain.getPose().getRotation().getDegrees());
    //add vision data to smartdashboard
-   
+   SmartDashboard.putNumber("Curr Pose x", m_driveTrain.vision.LastCalcVisionLocation.getX());
+   SmartDashboard.putNumber("Curr Pose y", m_driveTrain.vision.LastCalcVisionLocation.getY());
+   SmartDashboard.putNumber("Curr Pose theta", m_driveTrain.vision.LastCalcVisionLocation.getRotation().getDegrees()); 
+   SmartDashboard.putNumber("vision latency",m_driveTrain.vision.getVisionTimestamp());
+   SmartDashboard.putNumber("Curr Tag ID", m_driveTrain.vision.getLatestID());
   }
   public static RobotContainer getInstance() {
     return m_robotContainer;
