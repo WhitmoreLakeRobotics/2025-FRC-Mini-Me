@@ -98,7 +98,7 @@ public class DriveTrain extends SubsystemBase {
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean visionDriveTest = false;
+  private final boolean visionDriveTest = true;
   /**
    * PhotonVision cl`ss to keep an accurate odometry.
    */

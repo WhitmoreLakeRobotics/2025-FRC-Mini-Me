@@ -21,13 +21,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 
-public class DiverAssist extends SubsystemBase {
+public class DriverAssist extends SubsystemBase {
     // GLOBAL VARIABLES GO BELOW THIS LINE
     private DAStatus currDAStatus = DAStatus.INIT;
     private DriveTrain driveTrain;
     private Pose2d currRobotPose;  //current robot pose
-    private Pose2d SelectedtargetPose2d;  //selected target pose
-    private Targets CurrSelectedTarget; //selected target enum
+    private Pose2d SelectedtargetPose2d = Targets.STARTPOS.getTargetPose();  //selected target pose
+    private Targets CurrSelectedTarget = Targets.STARTPOS; //selected target enum
     private Pose2d prevTargetPose2d;   //previous loop's selected target pose
     private DriveState currDriveState = DriveState.STATIONARY;
     //private CoralPhase currCoralPhase;
@@ -47,16 +47,18 @@ public class DiverAssist extends SubsystemBase {
 
     //tactic variables
     private TACTIC_APPROACH currentTactic = TACTIC_APPROACH.T1;
-    private ActionStates currentActionState = ActionStates.UNKNOWN;
+    private ActionStates currentActionState = ActionStates.EMPTY;
 
     private PICKUP_TACTIC pickTactic;
     private DEPLOY_TACTIC deployTactic;
     private END_TACTIC endTactic;
+
+    private int numofTargets = 0;
     
 
     // GLOBAL VARIABLES GO ABOVE THIS LINE
     // SYSTEM METHODS GO BELOW THIS LINE
-    public DiverAssist() {
+    public DriverAssist() {
         
 
     }
@@ -137,6 +139,10 @@ public class DiverAssist extends SubsystemBase {
         prevTargetPose2d = SelectedtargetPose2d;
         bAtPrevTarget = isPose2dCloseEnough(currRobotPose, prevTargetPose2d);
         
+        // update Tactics based upon current tactic approach.
+        pickTactic = currentTactic.pickTactic;
+        deployTactic = currentTactic.deployTactic;
+        endTactic = currentTactic.endTactic;
         // need to revise this to which Action state we are in with auto updating statefully
         switch(currentActionState) {
             case STOWED:
@@ -250,7 +256,7 @@ public class DiverAssist extends SubsystemBase {
         //also include other robot state information.
         //also include game tactics  <- need to figure out how to do this. haha
 
-        int numofTargets = distances.size();  // number of targets
+        numofTargets = distances.size();  // number of targets
         
         switch (currentActionState) {
             case EMPTY:
@@ -439,6 +445,7 @@ public class DiverAssist extends SubsystemBase {
     // Retreive the current command of the drivetrain. 
     private void updateDrivetrainStatus() {
         // Get the current status of the drivetrain.
+        if(driveTrain.getCurrentCommand() != null){
         currCmdName = driveTrain.getCurrentCommand().getName();
            
             if(driveTrain.getSwerveDrive().getRobotVelocity().vxMetersPerSecond == 0 && 
@@ -447,10 +454,32 @@ public class DiverAssist extends SubsystemBase {
                     } else {
                         currDriveState = DriveState.MOVING;
                     }
-        
+                }
     }
 
-    
+    public DriveState getCurrDriveState() {
+        return currDriveState;
+    }
+
+    public Targets getCurrSelectedTargets() {
+        return CurrSelectedTarget;
+    }
+
+    public TACTIC_APPROACH getCurrTacticApproach() {
+        return currentTactic;
+    }
+
+    public boolean getbAtPrevTarg() {
+        return bAtPrevTarget;
+    }
+
+    public int getNumOfTargets() {
+        return numofTargets;
+    }
+
+    public ActionStates getCurrActionState() {
+        return currentActionState;
+    }
 
     public FullState getCurFullState(String[] args) {
         
@@ -499,10 +528,11 @@ public double getDistanceToTarget(Pose2d currentPose, Translation2d targetPositi
     }
 
     public enum Targets {
-        PICKUPLEFT(new Pose2d(6.0, 1.5, new Rotation2d(Math.toRadians(0.0))), "PICKUP"),
-        PICKUPRIGHT(new Pose2d(6.0, 5.5, new Rotation2d(Math.toRadians(0.0))), "PICKUP"),
-        ID8LEFT(new Pose2d(12.0, 1.5, new Rotation2d(Math.toRadians(0.0))), "DEPLOY"),
-        ID8RIGHT(new Pose2d(12.0, 5.5, new Rotation2d(Math.toRadians(0.0))), "DEPLOY"),
+        PICKUPLEFT(new Pose2d(-1.5, 6.75, new Rotation2d(Math.toRadians(0.0))), "PICKUP"),
+        PICKUPRIGHT(new Pose2d(-1.18, 3.18, new Rotation2d(Math.toRadians(0.0))), "PICKUP"),
+        ID8LEFT(new Pose2d(1.85, 5.6, new Rotation2d(Math.toRadians(0.0))), "DEPLOY"),
+        ID8RIGHT(new Pose2d(1.0, 4.0, new Rotation2d(Math.toRadians(0.0))), "DEPLOY"),
+        STARTPOS(new Pose2d(1.0, 4.0, new Rotation2d(Math.toRadians(0.0))), "START"),
         CLIMBLEFT(new Pose2d(18.0, 1.5, new Rotation2d(Math.toRadians(0.0))),"END");
 
         private final Pose2d targetPose;
