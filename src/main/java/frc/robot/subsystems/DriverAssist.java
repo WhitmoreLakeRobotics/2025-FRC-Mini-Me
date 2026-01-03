@@ -49,9 +49,9 @@ public class DriverAssist extends SubsystemBase {
     private TACTIC_APPROACH currentTactic = TACTIC_APPROACH.T1;
     private ActionStates currentActionState = ActionStates.EMPTY;
 
-    private PICKUP_TACTIC pickTactic;
-    private DEPLOY_TACTIC deployTactic;
-    private END_TACTIC endTactic;
+    private PICKUP_TACTIC pickTactic = currentTactic.pickTactic;
+    private DEPLOY_TACTIC deployTactic = currentTactic.deployTactic;
+    private END_TACTIC endTactic = currentTactic.endTactic;
 
     private int numofTargets = 0;
     
@@ -348,14 +348,13 @@ public class DriverAssist extends SubsystemBase {
 
     private void determineTargetBasedOnTactic() {
         // Determine the target based on the current tactic approach.
-
         switch (pickTactic){
             case NEARESTPICKUP:
                 //find nearest pickup
                     CurrSelectedTarget = distances.entrySet().stream()
                     .filter(entry -> entry.getKey().getTargetType().equals("PICKUP"))
                     .min((e1, e2) -> Double.compare(e1.getValue(), e2.getValue()))
-                    .map(entry -> Targets.valueOf(currCmdName))
+                    .map(entry -> Targets.valueOf(entry.getKey().name()))
                     .orElse(null);
                 
                 break;
@@ -384,7 +383,7 @@ public class DriverAssist extends SubsystemBase {
                 CurrSelectedTarget = distances.entrySet().stream()
                     .filter(entry -> entry.getKey().getTargetType().equals("DEPLOY"))
                     .min((e1, e2) -> Double.compare(e1.getValue(), e2.getValue()))
-                    .map(entry -> Targets.valueOf(currCmdName))
+                    .map(entry -> Targets.valueOf(entry.getKey().name()))
                     .orElse(null);
                 
                 break;
@@ -414,7 +413,7 @@ public class DriverAssist extends SubsystemBase {
                 CurrSelectedTarget = distances.entrySet().stream()
                     .filter(entry -> entry.getKey().getTargetType().equals("END"))
                     .min((e1, e2) -> Double.compare(e1.getValue(), e2.getValue()))
-                    .map(entry -> Targets.valueOf(currCmdName))
+                    .map(entry -> Targets.valueOf(entry.getKey().name()))
                     .orElse(null);
                 
                 break;
@@ -616,9 +615,9 @@ public double getDistanceToTarget(Pose2d currentPose, Translation2d targetPositi
         private END_TACTIC endTactic;
 
         TACTIC_APPROACH(PICKUP_TACTIC pickup, DEPLOY_TACTIC deploy, END_TACTIC end) {
-            this.pickTactic = pickTactic;
-            this.deployTactic = deployTactic;
-            this.endTactic = endTactic;
+            this.pickTactic = pickup;
+            this.deployTactic = deploy;
+            this.endTactic = end;
         }
         public PICKUP_TACTIC getPickTactic() {
             return pickTactic;

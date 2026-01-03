@@ -150,7 +150,8 @@ private double VisionTimeStamp;
     }
     for (Cameras camera : Cameras.values()) {
       Optional<EstimatedRobotPose> poseEst = getEstimatedGlobalPose(camera);
-      if (poseEst.isPresent()) {
+      try{
+      if (!poseEst.isEmpty()) {
         var pose = poseEst.get();
         //System.out.println("timestamp " + pose.timestampSeconds);
 
@@ -174,8 +175,13 @@ private double VisionTimeStamp;
             pose.timestampSeconds,
             camera.curStdDevs);
       }
+    
+      } catch (Exception e) {
+       //ignore 
+      }
+    }
   }
-}
+
 
   /**
    * Generates the estimated robot pose. Returns empty if:
