@@ -179,8 +179,8 @@ public class DriverAssist extends SubsystemBase {
                 break;
             case EMPTY:
             //if current pose is a Pickup target and we do not have an object
-                if(bAtPrevTarget && CurrSelectedTarget.targetType == "PICKUP" 
-                    && DriveState.STATIONARY == currDriveState && !RobotContainer.getInstance().m_sensors.bPickup){
+                if(CurrSelectedTarget.targetType == "PICKUP" 
+                    && DriveState.STATIONARY == currDriveState){
                     currentActionState = ActionStates.PICKINGUP;
                 }
                 break;

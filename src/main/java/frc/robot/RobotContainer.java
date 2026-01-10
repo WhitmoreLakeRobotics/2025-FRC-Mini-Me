@@ -169,9 +169,9 @@ public class RobotContainer {
    SmartDashboard.putNumber("elevatorPos", m_elevatorAndArm.getElevatorCurPos());
    SmartDashboard.putNumber("elevatorVelocity", m_elevatorAndArm.getElevatorVelocity());
    //add current odometry position to smartdashboard
-SmartDashboard.putNumber("Robot X Position", m_driveTrain.getPose().getX());
-SmartDashboard.putNumber("Robot Y Position", m_driveTrain.getPose().getY());
-SmartDashboard.putNumber("Robot Rotation", m_driveTrain.getPose().getRotation().getDegrees());
+  SmartDashboard.putNumber("Robot X Position", m_driveTrain.getPose().getX());
+  SmartDashboard.putNumber("Robot Y Position", m_driveTrain.getPose().getY());
+  SmartDashboard.putNumber("Robot Rotation", m_driveTrain.getPose().getRotation().getDegrees());
    //add vision data to smartdashboard
    SmartDashboard.putNumber("Curr Pose x", m_driveTrain.vision.LastCalcVisionLocation.getX());
    SmartDashboard.putNumber("Curr Pose y", m_driveTrain.vision.LastCalcVisionLocation.getY());
@@ -182,6 +182,7 @@ SmartDashboard.putNumber("Robot Rotation", m_driveTrain.getPose().getRotation().
    SmartDashboard.putString("Drive State", m_driverAssist.getCurrDriveState().toString());
    SmartDashboard.putString("Curr Selected Targets", m_driverAssist.getCurrSelectedTargets().toString());
    SmartDashboard.putString("Curr Selected Target pos", m_driverAssist.getCurrSelectedTargets().getTargetPose().toString());
+   SmartDashboard.putString("Curr Selected Target Type", m_driverAssist.getCurrSelectedTargets().getTargetType().toString());
    SmartDashboard.putString("Curr Tactic", m_driverAssist.getCurrTacticApproach().toString());
    SmartDashboard.putBoolean("At Prev Targ", m_driverAssist.getbAtPrevTarg());
    SmartDashboard.putNumber("Num Of Targets", m_driverAssist.getNumOfTargets());
@@ -206,8 +207,10 @@ SmartDashboard.putNumber("Robot Rotation", m_driveTrain.getPose().getRotation().
     m_driveTrain.setDefaultCommand(driveFieldOrientedDirectAngle);
 
     Trigger A_Drive = new Trigger(drive_Controller.a());
-    A_Drive.whileTrue(new DriveToPos(m_driverAssist.getCurrSelectedTargets().getTargetPose()))
-    .onFalse(driveFieldOrientedDirectAngle);
+    A_Drive.onTrue(new DriveToPos(m_driverAssist.getCurrSelectedTargets().getTargetPose(), m_driveTrain)
+        .until(() -> Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1 || Math
+            .abs(drive_Controller.getRightX()) > 0.1));
+    //.onFalse(driveFieldOrientedDirectAngle);
 
 
     Trigger Back_Drive = new Trigger(drive_Controller.back()); // reset gyrp
