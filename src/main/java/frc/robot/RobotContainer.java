@@ -210,9 +210,14 @@ public class RobotContainer {
     m_driveTrain.setDefaultCommand(driveFieldOrientedDirectAngle);
 
     Trigger A_Drive = new Trigger(drive_Controller.a());
-    A_Drive.onTrue(new DriveToPos(m_driverAssist.getCurrSelectedTargets().getTargetPose(), m_driveTrain)
+    /*A_Drive.onTrue(new DriveToPos(m_driverAssist.getCurrSelectedTargets().getTargetPose(), m_driveTrain)
         .until(() -> Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1 || Math
             .abs(drive_Controller.getRightX()) > 0.1));
+            */
+            A_Drive.onTrue(m_driveTrain.driveToPose(m_driverAssist.getCurrSelectedTargets().getTargetPose())
+            .until(() -> Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1 || Math
+            .abs(drive_Controller.getRightX()) > 0.1));
+          
     //.onFalse(driveFieldOrientedDirectAngle);
 
 
