@@ -41,7 +41,7 @@ public class DriverAssist extends SubsystemBase {
     private Targets[] TargetSets;
 
     //pose tolaerance values
-    private static final double positionToleranceMeters = 0.1; // 10 cm tolerance
+    private static final double positionToleranceMeters = 1.0; // 10 cm tolerance
     private static final double angleToleranceRadians = Math.toRadians(5); // 5 degrees tolerance
     private boolean bAtPrevTarget = false;
 
@@ -146,6 +146,7 @@ public class DriverAssist extends SubsystemBase {
         // need to revise this to which Action state we are in with auto updating statefully
         switch(currentActionState) {
             case STOWED:
+            RobotContainer.getInstance().m_sensors.bPickup = true; //for demo purposes auto set pickup sensor to false
             //if current pose is a Deploy target and we have an object
             if(bAtPrevTarget && CurrSelectedTarget.targetType == "DEPLOY" && DriveState.STATIONARY == currDriveState){
                 if(RobotContainer.getInstance().m_sensors.bPickup){
@@ -156,12 +157,17 @@ public class DriverAssist extends SubsystemBase {
                 break;
             case PICKINGUP:
             //if current pose is a Pickup target, and we are at target and we do not have an object
-            if(bAtPrevTarget && CurrSelectedTarget.targetType == "PICKUP" && DriveState.STATIONARY == currDriveState){
+            if(bAtPrevTarget){
                 if(!RobotContainer.getInstance().m_sensors.bPickup){
                     currentActionState = ActionStates.STOWED;
 
                     //for demo purposes auto set pickup sensor to true
                     RobotContainer.getInstance().m_sensors.bPickup = true;
+                }
+                else {
+                    currentActionState = ActionStates.STOWED;
+                    //RobotContainer.getInstance().m_sensors.bPickup = false;
+
                 }
             }
                 
@@ -447,8 +453,8 @@ public class DriverAssist extends SubsystemBase {
         if(driveTrain.getCurrentCommand() != null){
         currCmdName = driveTrain.getCurrentCommand().getName();
            
-            if(driveTrain.getSwerveDrive().getRobotVelocity().vxMetersPerSecond == 0 && 
-                    driveTrain.getSwerveDrive().getRobotVelocity().vyMetersPerSecond == 0){
+            if(driveTrain.getSwerveDrive().getRobotVelocity().vxMetersPerSecond <= Math.abs(0.01) && 
+                    driveTrain.getSwerveDrive().getRobotVelocity().vyMetersPerSecond <= Math.abs(0.01)){
                         currDriveState = DriveState.STATIONARY;
                     } else {
                         currDriveState = DriveState.MOVING;
