@@ -94,7 +94,8 @@ public class DriveTrain extends SubsystemBase {
 
   private SwerveDrive swerveDrive;
 
-  private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+  private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+  
   /**
    * Enable vision odometry updates while driving.
    */
