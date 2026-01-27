@@ -14,6 +14,7 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.*;
+import frc.robot.commands.Turret.SetTarget;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.ElevatorAndArm.ElevAndArmPos;
 import swervelib.SwerveInputStream;
@@ -68,6 +69,7 @@ public class RobotContainer {
   public final DriveTrain m_driveTrain = new DriveTrain(new File(Filesystem.getDeployDirectory(), "swerve"));
   public final ElevatorAndArm m_elevatorAndArm = new ElevatorAndArm();
   public final DriverAssist m_driverAssist = new DriverAssist();
+  public final Launcher m_launcher = new Launcher();
   // Joysticks
   private final CommandXboxController Articulator = new CommandXboxController(1);
   private final CommandXboxController drive_Controller = new CommandXboxController(0);
@@ -217,6 +219,12 @@ public class RobotContainer {
             A_Drive.onTrue(m_driveTrain.driveToPose(m_driverAssist.getCurrSelectedTargets().getTargetPose())
             .until(() -> Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1 || Math
             .abs(drive_Controller.getRightX()) > 0.1));
+
+     Trigger B_Drive = new Trigger(drive_Controller.b());
+     B_Drive.onTrue(new SetTarget(Launcher.KnownTargets.RED_HUB.getPose2d()));   
+     
+     Trigger X_Drive = new Trigger(drive_Controller.x());
+      X_Drive.onTrue(new SetTarget(Launcher.KnownTargets.BLUE_HUB.getPose2d()));
           
     //.onFalse(driveFieldOrientedDirectAngle);
 
