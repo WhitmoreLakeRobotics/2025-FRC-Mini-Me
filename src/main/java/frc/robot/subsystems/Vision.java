@@ -343,7 +343,7 @@ private double VisionTimeStamp;
      * Left Camera
      */
      
-    CENTER_CAM("Center",
+    CENTER_CAM("Luma1",
        new Rotation3d(0,0, Units.degreesToRadians(90)),
         new Translation3d(Units.inchesToMeters(0.6),
             Units.inchesToMeters(-1),

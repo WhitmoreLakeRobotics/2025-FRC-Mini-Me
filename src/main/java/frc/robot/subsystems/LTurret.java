@@ -111,7 +111,7 @@ public class LTurret extends SubsystemBase {
 
         // config.encoder.positionConversionFactor(Math.PI * elevator_gearDiameter /
         // elevator_gearRatio);
-        turningConfig.encoder.positionConversionFactor(360);
+        turningConfig.encoder.positionConversionFactor(1.0);
         turningConfig.inverted(true);
         turningConfig.softLimit.forwardSoftLimitEnabled(false);
         turningConfig.softLimit.reverseSoftLimit(0);
@@ -138,7 +138,7 @@ public class LTurret extends SubsystemBase {
         // turningConfig.closedLoop.maxMotion.allowedClosedLoopError(rTowerRPosTol, rTowerR_CLOSED_LOOP_SLOT_UP);
         // turningConfig.closedLoop.pidf(0.4, 0.0, 0.0, 0.0, rTowerR_CLOSED_LOOP_SLOT_UP);
 
-        turningConfig.closedLoop.pid(0.04, 0.0, 0.0, ClosedLoopSlot.kSlot0);
+        turningConfig.closedLoop.pid(0.08, 0.0, 0.0, ClosedLoopSlot.kSlot0);
 
         //turningConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         AbsoluteEncoderConfig absEncConfig = new AbsoluteEncoderConfig();
@@ -148,7 +148,7 @@ public class LTurret extends SubsystemBase {
 
         //turningConfig.absoluteEncoder.apply(absEncConfig);
         turningConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        turningConfig.smartCurrentLimit(25);
+        turningConfig.smartCurrentLimit(30);
         //turningConfig.smartCurrentLimit(normalStallCurrentLimit, normalFreeCurrentLimit);
 
         turningMotor.configure(turningConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
