@@ -146,7 +146,7 @@ public class Launcher extends SubsystemBase {
     }
 
     public double getAngleToTarget(){
-        return DriverAssist.getAngleToTarget(currentPose, targetPose.getTranslation()).getDegrees();
+        return DriverAssist.getRelativeAngleToTarget(currentPose, targetPose.getTranslation()).getDegrees();
     }
 
     public void setStatus(LauncherStatus newStatus){

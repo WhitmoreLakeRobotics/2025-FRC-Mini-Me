@@ -345,9 +345,9 @@ private double VisionTimeStamp;
      
     CENTER_CAM("Luma1",
        new Rotation3d(0,0, Units.degreesToRadians(90)),
-        new Translation3d(Units.inchesToMeters(0.6),
-            Units.inchesToMeters(-1),
-            Units.inchesToMeters(10.00)),
+        new Translation3d ((0.075), //from behind the middle
+            (0.075), //left right, left is positive
+           (0.29)), //height above the ground
         VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
     
         /**
