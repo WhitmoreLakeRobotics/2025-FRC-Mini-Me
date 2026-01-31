@@ -68,6 +68,7 @@ public class RobotContainer {
   public final DriveTrain m_driveTrain = new DriveTrain(new File(Filesystem.getDeployDirectory(), "swerve"));
   public final DriverAssist m_driverAssist = new DriverAssist();
   public final Launcher m_launcher = new Launcher();
+  public final FMSSystem m_fmsSystem = new FMSSystem();
   // Joysticks
   private final CommandXboxController Articulator = new CommandXboxController(1);
   private final CommandXboxController drive_Controller = new CommandXboxController(0);
@@ -161,6 +162,10 @@ public class RobotContainer {
     SmartDashboard.putNumber("Target Angle", m_launcher.turret.getTargetAngle());
     SmartDashboard.putNumber("Angle To Target", m_launcher.getAngleToTarget());
     SmartDashboard.putString("Launcher Status", m_launcher.getCombinedStatus());
+     //add FMS data to smartdashboard
+     SmartDashboard.putString("FMS Status", m_fmsSystem.getStatus().toString());
+     SmartDashboard.putString("FMS Data", m_fmsSystem.getPrivateData());
+     SmartDashboard.putNumber("Remaining Time", m_fmsSystem.getRemainingTime());
    //add current odometry position to smartdashboard
   SmartDashboard.putNumber("Robot X Position", m_driveTrain.getPose().getX());
   SmartDashboard.putNumber("Robot Y Position", m_driveTrain.getPose().getY());
