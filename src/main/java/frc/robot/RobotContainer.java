@@ -162,6 +162,7 @@ public class RobotContainer {
     SmartDashboard.putNumber("Target Angle", m_launcher.turret.getTargetAngle());
     SmartDashboard.putNumber("Angle To Target", m_launcher.getAngleToTarget());
     SmartDashboard.putString("Launcher Status", m_launcher.getCombinedStatus());
+    SmartDashboard.putNumber("Distance To Target", m_launcher.getDistanceToTarget());
      //add FMS data to smartdashboard
      SmartDashboard.putString("FMS Status", m_fmsSystem.getStatus().toString());
      SmartDashboard.putString("FMS Data", m_fmsSystem.getPrivateData());

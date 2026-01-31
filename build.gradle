@@ -1,6 +1,7 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
+    id ("org.hidetake.ssh") version "2.12.0"
 }
 
 java {
@@ -109,12 +110,12 @@ tasks.withType(JavaCompile) {
 
 
 remotes {
-    rioServer {
-        host = '10.36.68.1'
-        user = 'admin'
-        password = '' // Or use an identity file for better security
+    //rioServer {
+      //  host = '10.36.68.1'
+      //  user = 'admin'
+      //  password = '' // Or use an identity file for better security
         // identity = file('~/.ssh/id_rsa')
-    }
+   // },
     lumaCamera1 {
         host = '10.36.68.13'
         user = 'photon'
@@ -122,7 +123,7 @@ remotes {
     }
 }
 
-tasks.register('rebootRio') {
+tasks.register('rebootLuma'){
     description 'Runs a shutdown -r now command on the RoboRio via SSH'
     // remotes myServer // Reference the remote defined above
 
@@ -139,5 +140,5 @@ tasks.register('rebootRio') {
 
 // make the rioRebot execute following the deploy task
 tasks.named('deploy').configure {
-    finalizedBy 'rebootRio'
+    finalizedBy 'rebootLuma'
 }
