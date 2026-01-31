@@ -74,6 +74,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void disabledInit() {
+        RobotContainer.getInstance().m_fmsSystem.pause();
     }
 
     @Override
