@@ -166,6 +166,10 @@ public class FMSSystem extends SubsystemBase {
         time.start();
     }
 
+    public void pause() {
+        time.stop();
+    }
+
     public void resetTeleop() {
         time.start();
         time.reset();
