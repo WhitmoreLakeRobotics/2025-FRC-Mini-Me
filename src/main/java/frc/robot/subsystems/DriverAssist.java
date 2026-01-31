@@ -494,7 +494,7 @@ public static Rotation2d getAngleToTarget(Pose2d currentPose, Translation2d targ
 }
 
 //get relative angle to target in Rotation2d in degrees
-public Rotation2d getRelativeAngleToTarget(Pose2d currentPose, Translation2d targetPosition) {
+public static Rotation2d getRelativeAngleToTarget(Pose2d currentPose, Translation2d targetPosition) {
     Rotation2d angleToTarget = getAngleToTarget(currentPose, targetPosition);
     return angleToTarget.minus(currentPose.getRotation());
 }
