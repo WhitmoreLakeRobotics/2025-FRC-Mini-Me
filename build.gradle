@@ -105,3 +105,39 @@ wpi.java.configureTestTasks(test)
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
+
+
+
+remotes {
+    rioServer {
+        host = '10.36.68.1'
+        user = 'admin'
+        password = '' // Or use an identity file for better security
+        // identity = file('~/.ssh/id_rsa')
+    }
+    lumaCamera1 {
+        host = '10.36.68.13'
+        user = 'photon'
+        password = 'vision'
+    }
+}
+
+tasks.register('rebootRio') {
+    description 'Runs a shutdown -r now command on the RoboRio via SSH'
+    // remotes myServer // Reference the remote defined above
+
+    // Define the actions to perform
+    doLast {
+        ssh.run {
+            session(remotes.lumaCamera1) {
+                // Execute a single command
+                execute 'sleep 3; sudo shutdown -r now'
+            }
+        }
+    }
+}
+
+// make the rioRebot execute following the deploy task
+tasks.named('deploy').configure {
+    finalizedBy 'rebootRio'
+}
