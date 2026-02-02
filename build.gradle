@@ -165,6 +165,6 @@ tasks.register('reboot_devices'){
 }
 
 // make the rioRebot execute following the deploy task
-tasks.named('build').configure {
+tasks.named('deploy').configure {
     finalizedBy 'reboot_devices'
 }
