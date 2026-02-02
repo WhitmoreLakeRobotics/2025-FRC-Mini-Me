@@ -123,6 +123,12 @@ remotes {
         password = 'vision'
         timeoutSec = 2
     }
+    tester {
+        host = '10.36.68.118'
+        user = 'pi'
+        password = "raspberry"
+        timeoutSec = 2
+    }
 }
 
 tasks.register('reboot_devices'){
@@ -133,18 +139,22 @@ tasks.register('reboot_devices'){
     doLast {
         remotes.each {  remote ->
             try {
+                println "Requesting reboot of  ${remote.name}."
                 ssh.run {
                     session(remote) {
                         // Execute a single command
                         execute 'sleep 1; sudo shutdown -r now'
                     }
                 }
+                println "Request to reboot ${remote.name} is successful.  :)"
             }
             catch (Exception e) {
                 if (e.class.simpleName == 'JSchException') {
-                   println "Network issue connecting to ${remote.name}"
+                   println "ERROR: Network issue connecting to ${remote.name}.  :("
+                   println "SSH Error: ${e.message}"
                 } else {
-                    println "General error: ${e.message}"
+                    println "ERROR: Network issue connecting to ${remote.name}.  :("
+                    println "General Error: ${e.message}"
                     throw e // Re-throw if it's something else we don't handle
                 }
             } finally {
@@ -155,6 +165,6 @@ tasks.register('reboot_devices'){
 }
 
 // make the rioRebot execute following the deploy task
-tasks.named('deploy').configure {
+tasks.named('build').configure {
     finalizedBy 'reboot_devices'
 }
