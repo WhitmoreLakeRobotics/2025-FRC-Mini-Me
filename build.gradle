@@ -110,25 +110,19 @@ tasks.withType(JavaCompile) {
 
 
 remotes {
-    rioServer {
-        host = '10.36.68.1'
-        user = 'admin'
-        password = '' // Or use an identity file for better security
-        // identity = file('~/.ssh/id_rsa')
-        timeoutSec = 2
-    }
     lumaCamera1 {
         host = '10.36.68.13'
         user = 'photon'
         password = 'vision'
         timeoutSec = 2
     }
-    tester {
-        host = '10.36.68.118'
-        user = 'pi'
-        password = "raspberry"
+    rioServer {
+        host = '10.36.68.2'
+        user = 'admin'
+        password = '' // Or use an identity file for better security
+        // identity = file('~/.ssh/id_rsa')
         timeoutSec = 2
-    }
+     }
 }
 
 tasks.register('reboot_devices'){

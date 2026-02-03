@@ -52,17 +52,19 @@ import swervelib.telemetry.SwerveDriveTelemetry;
  * https://gitlab.com/ironclad_code/ironclad-2024/-/blob/master/src/main/java/frc/robot/vision/Vision.java?ref_type=heads
  */
 public class Vision {
-/***Begin Custom Varibles */
-public Optional<Pose2d> lastCalculatedDist;
-public Pose2d LastCalcVisionLocation = new Pose2d(new Translation2d(16.0, 4.000), Rotation2d.fromDegrees(180));;
-//public final PhotonPoseEstimator poseEstimator;
-StructPublisher<Pose2d> estimatedCaemraPose = NetworkTableInstance.getDefault().getStructTopic("SmartDashboard/Subsystem/Vision/estimatedCameraPose", Pose2d.struct).publish();
-public int latestID;
-private double VisionTimeStamp;
+  /*** Begin Custom Varibles */
+  public Optional<Pose2d> lastCalculatedDist;
+  public Pose2d LastCalcVisionLocation = new Pose2d(new Translation2d(16.0, 4.000), Rotation2d.fromDegrees(180));;
+  // public final PhotonPoseEstimator poseEstimator;
+  StructPublisher<Pose2d> estimatedCaemraPose = NetworkTableInstance.getDefault()
+      .getStructTopic("SmartDashboard/Subsystem/Vision/estimatedCameraPose", Pose2d.struct).publish();
+  public int latestID;
+  private double VisionTimeStamp;
   /**
    * April Tag Field Layout of the year.
    */
-  public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+  public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout
+      .loadField(AprilTagFields.k2026RebuiltWelded);
   /**
    * Ambiguity defined as a value between (0,1). Used in
    * {@link Vision#filterPose}.
@@ -124,7 +126,7 @@ private double VisionTimeStamp;
       return aprilTagPose3d.get().toPose2d().transformBy(robotOffset);
     } else {
       throw new RuntimeException("Cannot get AprilTag " + aprilTag + " from field " + fieldLayout.toString());
-    }       
+    }
 
   }
 
@@ -150,38 +152,39 @@ private double VisionTimeStamp;
     }
     for (Cameras camera : Cameras.values()) {
       Optional<EstimatedRobotPose> poseEst = getEstimatedGlobalPose(camera);
-      try{
-      if (!poseEst.isEmpty()) {
-        var pose = poseEst.get();
-        //System.out.println("timestamp " + pose.timestampSeconds);
+      try {
+        if (poseEst.isPresent()) {
+          var pose = poseEst.get();
+          // System.out.println("timestamp " + pose.timestampSeconds);
 
-        /*added custom code 3668 here */
-        latestID = pose.targetsUsed.get(0).getFiducialId(); //get used id from last scan 
-        VisionTimeStamp = pose.timestampSeconds;
-        Optional<Pose3d> tagPoseOptional = fieldLayout.getTagPose(latestID);   //get april tag location from last viewed tag id
-        Pose3d tagPose = tagPoseOptional.get();   //convert to actual Pose3d of tag id 
-        // Compute the robot's pose relative to the tag
-        Pose2d robotPose = pose.estimatedPose.toPose2d();   //grab 2d pose of robot relative to field
-        LastCalcVisionLocation = robotPose;
-        Pose2d tagPose2d = tagPose.toPose2d();  // get 2d pose from 3d of april tag location
-        Pose2d robotInTagSpace = robotPose.relativeTo(tagPose2d);  //calc robot postion relative to tag 
-        lastCalculatedDist = Optional.of(robotInTagSpace);  // store robot location 
+          /* added custom code 3668 here */
+          latestID = pose.targetsUsed.get(0).getFiducialId(); // get used id from last scan
+          VisionTimeStamp = pose.timestampSeconds;
+          Optional<Pose3d> tagPoseOptional = fieldLayout.getTagPose(latestID); // get april tag location from last
+                                                                               // viewed tag id
+          if (tagPoseOptional.isPresent()) {
+            Pose3d tagPose = tagPoseOptional.get(); // convert to actual Pose3d of tag id
+            // Compute the robot's pose relative to the tag
+            Pose2d robotPose = pose.estimatedPose.toPose2d(); // grab 2d pose of robot relative to field
+            LastCalcVisionLocation = robotPose;
+            Pose2d tagPose2d = tagPose.toPose2d(); // get 2d pose from 3d of april tag location
+            Pose2d robotInTagSpace = robotPose.relativeTo(tagPose2d); // calc robot postion relative to tag
+            lastCalculatedDist = Optional.of(robotInTagSpace); // store robot location
+          }
 
+          // lastCalculatedDist.of(poseEst.get().estimatedPose.toPose2d());
+          /* end of custom code 3668 */
 
-       // lastCalculatedDist.of(poseEst.get().estimatedPose.toPose2d());
-        /* end of custom code 3668 */
-       
-       swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
-            pose.timestampSeconds,
-            camera.curStdDevs);
-      }
-    
+          swerveDrive.addVisionMeasurement(pose.estimatedPose.toPose2d(),
+              pose.timestampSeconds,
+              camera.curStdDevs);
+        }
+
       } catch (Exception e) {
-       //ignore 
+        // ignore
       }
     }
   }
-
 
   /**
    * Generates the estimated robot pose. Returns empty if:
@@ -342,37 +345,37 @@ private double VisionTimeStamp;
     /**
      * Left Camera
      */
-     
+
     CENTER_CAM("Luma1",
-       new Rotation3d(0,0, Units.degreesToRadians(90)),
-        new Translation3d ((0.075), //from behind the middle
-            (0.075), //left right, left is positive
-           (0.29)), //height above the ground
+        new Rotation3d(0, 0, Units.degreesToRadians(90)),
+        new Translation3d((0.075), // from behind the middle
+            (0.075), // left right, left is positive
+            (0.29)), // height above the ground
         VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
-    
-        /**
+
+    /**
      * Right Camera
      */
-    /* 
-     RIGHT_CAM("right",
-        new Rotation3d(0, Math.toRadians(-24.094), Math.toRadians(-30)),
-        new Translation3d(Units.inchesToMeters(12.056),
-            Units.inchesToMeters(-10.981),
-            Units.inchesToMeters(8.44)),
-        VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
-        */
+    /*
+     * RIGHT_CAM("right",
+     * new Rotation3d(0, Math.toRadians(-24.094), Math.toRadians(-30)),
+     * new Translation3d(Units.inchesToMeters(12.056),
+     * Units.inchesToMeters(-10.981),
+     * Units.inchesToMeters(8.44)),
+     * VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+     */
 
     /**
      * Center Camera
      */
-    /* 
-    CENTER_CAM("center",
-        new Rotation3d(0,0, Units.degreesToRadians(90)),
-        new Translation3d(Units.inchesToMeters(0.6),
-            Units.inchesToMeters(-1),
-            Units.inchesToMeters(10.00)),
-        VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
-*/
+    /*
+     * CENTER_CAM("center",
+     * new Rotation3d(0,0, Units.degreesToRadians(90)),
+     * new Translation3d(Units.inchesToMeters(0.6),
+     * Units.inchesToMeters(-1),
+     * Units.inchesToMeters(10.00)),
+     * VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
+     */
     /**
      * Latency alert to use when high latency is detected.
      */
@@ -634,25 +637,24 @@ private double VisionTimeStamp;
     }
 
   }
-/*****Inserted Custom Code */
-public int getLatestID() { 
-  return latestID;
-}
-public double getVisionTimestamp(){
-  return VisionTimeStamp;
-}
 
-
-public void UpdateTargetList(){
-  //var result = Cameras.RIGHT_CAM.getLatestResult();
-  PhotonPipelineResult result = Cameras.CENTER_CAM.getLatestResult().get();
-  if(result!=null && result.hasTargets()) {
-    latestID = result.getBestTarget().getFiducialId();
+  /***** Inserted Custom Code */
+  public int getLatestID() {
+    return latestID;
   }
-  else {
-    latestID = -1;
-  }
-}
 
+  public double getVisionTimestamp() {
+    return VisionTimeStamp;
+  }
+
+  // public void UpdateTargetList() {
+  //   // var result = Cameras.RIGHT_CAM.getLatestResult();
+  //   PhotonPipelineResult result = Cameras.CENTER_CAM.getLatestResult().get();
+  //   if (result != null && result.hasTargets()) {
+  //     latestID = result.getBestTarget().getFiducialId();
+  //   } else {
+  //     latestID = -1;
+  //   }
+  // }
 
 }
