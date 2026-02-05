@@ -263,6 +263,10 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+  public Command getAutonomousCommand() {
+    // Return the selected autonomous command
+    return autoChooser.getSelected();
+  }
   public Command runTestCommand() {
     
      return m_chooser.getSelected();
