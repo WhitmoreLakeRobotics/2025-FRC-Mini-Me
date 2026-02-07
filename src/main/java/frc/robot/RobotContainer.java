@@ -126,7 +126,7 @@ public class RobotContainer {
         m_tacticLastSelectedCommand = selectedCommand;
         if (selectedCommand != null) {
           CommandScheduler.getInstance().schedule(selectedCommand);
-         // selectedCommand.schedule();
+          // selectedCommand.schedule();
         }
       }
     });
@@ -244,18 +244,20 @@ public class RobotContainer {
                 .abs(drive_Controller.getRightX()) > 0.1)));
 
     Trigger B_Drive = new Trigger(drive_Controller.b());
-    B_Drive.onTrue(new SetTarget(Launcher.KnownTargets.RED_HUB.getPose2d()))
-        .onTrue(new DriveToPos(DriverAssist.Targets.RRIGHTSTART.getTargetPose(), m_driveTrain)
+    B_Drive
+        .whileTrue(new DriveToPos(DriverAssist.Targets.RRIGHTSTART.getTargetPose(), m_driveTrain)
             .until(
-                () -> (Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1 || Math
-                    .abs(drive_Controller.getRightX()) > 0.1)));
+                () -> (Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1
+                    || Math
+                        .abs(drive_Controller.getRightX()) > 0.1)));
 
     Trigger X_Drive = new Trigger(drive_Controller.x());
-    X_Drive.onTrue(new SetTarget(Launcher.KnownTargets.BLUE_HUB.getPose2d()))
-        .onTrue(new DriveToPos(DriverAssist.Targets.RRIGHTCLIMB.getTargetPose(), m_driveTrain)
+    X_Drive
+        .whileTrue(new DriveToPos(DriverAssist.Targets.RRIGHTCLIMB.getTargetPose(), m_driveTrain)
             .until(
-                () -> (Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1 || Math
-                    .abs(drive_Controller.getRightX()) > 0.1)));
+                () -> (Math.abs(drive_Controller.getLeftY()) > 0.1 || Math.abs(drive_Controller.getLeftX()) > 0.1
+                    || Math
+                        .abs(drive_Controller.getRightX()) > 0.1)));
 
     // .onFalse(driveFieldOrientedDirectAngle);
 
