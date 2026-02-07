@@ -118,6 +118,7 @@ remotes {
         timeoutSec = 2
     }
     */
+    /*
     rioServer {
         host = '10.36.68.2'
         user = 'admin'
@@ -125,6 +126,7 @@ remotes {
         // identity = file('~/.ssh/id_rsa')
         timeoutSec = 2
      }
+     */
 }
 
 tasks.register('reboot_devices'){
