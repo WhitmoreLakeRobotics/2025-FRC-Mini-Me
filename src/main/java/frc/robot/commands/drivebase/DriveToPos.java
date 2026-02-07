@@ -1,5 +1,7 @@
 package frc.robot.commands.drivebase;
 
+import java.io.File;
+
 import javax.swing.RootPaneContainer;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -7,9 +9,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.RobotContainer;
+import frc.robot.subsystems.DriveTrain;
 
 public class DriveToPos extends Command {
     private boolean bDone = false;
@@ -38,10 +43,10 @@ public class DriveToPos extends Command {
         
 
     }
-    public DriveToPos(Pose2d newPose2d) {
+    public DriveToPos(Pose2d newPose2d, Subsystem subsystem) {
         this.newTarget = newPose2d;
-        // m_subsystem = subsystem;
-         addRequirements(RobotContainer.getInstance().m_driveTrain);
+         Subsystem m_subsystem = subsystem;
+         addRequirements(m_subsystem);
         
     }
     // if fixedDist = false => stagPosition is suposed to recieve the percantage to

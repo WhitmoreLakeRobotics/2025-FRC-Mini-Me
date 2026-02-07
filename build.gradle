@@ -110,12 +110,14 @@ tasks.withType(JavaCompile) {
 
 
 remotes {
-    lumaCamera1 {
-        host = '10.36.68.13'
+   /* 
+   lumaCamera1 {
+        host = '10.36.68.14'
         user = 'photon'
         password = 'vision'
         timeoutSec = 2
     }
+    */
     rioServer {
         host = '10.36.68.2'
         user = 'admin'
